@@ -1,0 +1,90 @@
+<style>
+    /* can use inspect tool in edge and chrome to see css and of each element in webpage */
+
+    /* can use hex to rgb calculator for ease */
+
+    /* can see space in pixels between padding, border, and margin using inspect tool, selecting the element on the page, then going to Computed */
+
+    .subscribe-button {
+      background-color: rgb(204, 0, 0); 
+      color: white; 
+      border: none;
+      border-radius: 2px;
+      padding-left: 16px;
+      padding-right: 16px;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      margin-right: 12px;
+      cursor: pointer; 
+      transition: opacity 0.15s;
+    }
+
+    .subscribe-button:hover {
+        opacity: 0.75;
+    }
+
+    .subscribe-button:active {
+        opacity: 0.5;
+    }
+    
+    .join-button {
+      background-color: white;
+      color: rgb(6, 95, 212);
+      border-color: rgb(6, 95, 212);
+      border-radius: 2px;
+      border-width: 0.8px;
+      border-style: solid;
+      padding-left: 15px; /* adds padding inside the join-button to the left*/
+      padding-right: 15px; /* adds padding inside the join-button to the right*/
+      padding-top: 9px; /* adds padding inside the join-button to the top*/
+      padding-bottom: 9px; /* adds padding inside the join-button to the bottom*/
+      margin-right: 12px;
+      cursor: pointer;
+      transition: background-color 0.15s, color 0.15s;
+    }
+
+    .join-button:hover {
+        background-color: rgb(6, 95, 212);
+        color: white;
+    }
+
+    .join-button:active {
+        opacity: 0.75;
+    }
+
+    .tweet-button {
+      background-color: rgb(29, 155, 240);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding-left: 16px;
+      padding-right: 16px;
+      padding-top: 7px;
+      padding-bottom: 7px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: box-shadow 0.15s;
+    } 
+
+    .tweet-button:hover {
+        box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.15);
+    }
+</style>
+  
+<button class="subscribe-button">
+    SUBSCRIBE
+</button>
+  
+<button class="join-button">
+    JOIN
+</button>
+  
+<button class="tweet-button">
+    Tweet
+</button>
+
+<p></p>
+
+<a href="https://supersimple.dev/exercises/buttons" target="_blank">
+    click here to see what buttons above should be matching with
+</a>
