@@ -10,7 +10,6 @@ This repository is dedicated to tracking my progress in programming and web deve
 
 ### Web Development
 - HTML & CSS basics
-- JavaScript (coming soon)
 
 ### Future Learning Plans
 - JavaScript
