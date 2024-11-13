@@ -1,3 +1,0 @@
-('Misbah', '5875455440', 'Male', 'Raahim', 'Debit', 1)
-('Salaar', '5875455441', 'Trans', 'Misbah', 'Credit', 0)
-('Zain', '5879732467', 'Trans', 'Usaid', 'Crypto', 0)
