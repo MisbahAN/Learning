@@ -5,7 +5,6 @@ This repository is dedicated to tracking my progress in programming and web deve
 ## Contents
 
 ### Python
-- Fundamental exercises
 - Tkinter for GUI development
 - Pygame for Game development
 
