@@ -12,9 +12,20 @@ This repository contains a collection of Python scripts created while learning T
 
 ### Projects:
 1. **Notepad** - A simple text editor with features like opening, saving, and text formatting.
+   - **Features**: Create new files, open existing files, save files, cut, copy, paste, and more.
+   - **Technologies Used**: Tkinter, file handling, event-driven programming.
+
 2. **Calculator** - A basic calculator with a GUI that performs arithmetic operations.
+   - **Features**: Basic arithmetic operations, clear and evaluate functionality, intuitive user interface.
+   - **Technologies Used**: Tkinter, event handling, button layouts, and input evaluation.
+
 3. **Edmonton Travel System** - A form to collect user details and save them for a mock travel booking system.
+   - **Features**: User input for travel details, saving data to a file.
+   - **Technologies Used**: Tkinter, form handling, file I/O.
+
 4. **Window Resizer** - A dynamic window resizer that changes background color based on window dimensions.
+   - **Features**: Dynamic resizing with color change based on window size.
+   - **Technologies Used**: Tkinter, window event handling.
 
 **Goal by the end of the course**: To gain a solid understanding of Tkinter's core functionality and apply this knowledge in building functional applications.
 
