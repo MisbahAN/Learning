@@ -1,9 +1,9 @@
 import sys
 import math
 import random
-
 import pygame
 
+# Import utility functions and classes from other modules
 from scripts.utils import load_image, load_images, Animation
 from scripts.entities import PhysicsEntity, Player, Enemy
 from scripts.tilemap import Tilemap
@@ -12,25 +12,20 @@ from scripts.particle import Particle
 from scripts.spark import Spark
 
 class Game:
-
-    # -----------------------------Initializing Game Class-----------------------------------------------------
-
     def __init__(self):
-        # Initialize pygame
+        # Initialize pygame and set up display
         pygame.init()
-
-        # Set title for game screen
-        pygame.display.set_caption("Ninja Game")
+        pygame.display.set_caption('Ninja Game')
         self.screen = pygame.display.set_mode((640, 480))
         self.display = pygame.Surface((320, 240))
 
-        # Create clock object
+        # Initialize the game clock
         self.clock = pygame.time.Clock()
-        
-        # Track movement (left and right)
+
+        # Player movement tracking: [Left, Right]
         self.movement = [False, False]
-        
-        # Load assets
+
+        # Load assets (images, animations) for game elements
         self.assets = {
             'decor': load_images('tiles/decor'),
             'grass': load_images('tiles/grass'),
@@ -51,93 +46,117 @@ class Game:
             'gun': load_image('gun.png'),
             'projectile': load_image('projectile.png'),
         }
-        
-        # Initialize game elements
+
+        # Create cloud layer
         self.clouds = Clouds(self.assets['clouds'], count=16)
+
+        # Initialize player object
         self.player = Player(self, (50, 50), (8, 15))
+
+        # Initialize tilemap and load the first level
         self.tilemap = Tilemap(self, tile_size=16)
         self.load_level(0)
 
-    # -----------------------------Loading Level-----------------------------------------------------
+        # Set screenshake amount to zero
+        self.screenshake = 0
 
     def load_level(self, map_id):
-        self.tilemap.load(f'data/maps/{map_id}.json')
+        """Load map, enemies, and particle spawners for the specified level."""
+        self.tilemap.load('data/maps/' + str(map_id) + '.json')
         
-        # Set up leaf spawners based on level layout
+        # Leaf spawner setup for trees
         self.leaf_spawners = [
             pygame.Rect(4 + tree['pos'][0], 4 + tree['pos'][1], 23, 13)
             for tree in self.tilemap.extract([('large_decor', 2)], keep=True)
         ]
-        
-        # Populate enemies and player spawn points
+
+        # Initialize enemies and player spawn point
         self.enemies = []
         for spawner in self.tilemap.extract([('spawners', 0), ('spawners', 1)]):
             if spawner['variant'] == 0:
                 self.player.pos = spawner['pos']
+                self.player.air_time = 0
             else:
                 self.enemies.append(Enemy(self, spawner['pos'], (8, 15)))
-            
-        # Initialize lists for projectiles, particles, and sparks
-        self.projectiles, self.particles, self.sparks = [], [], []
-        
-        # Initial scroll and death status
+
+        # Initialize projectile and particle lists
+        self.projectiles = []
+        self.particles = []
+        self.sparks = []
+
+        # Set up camera scroll and reset death counter
         self.scroll = [0, 0]
         self.dead = 0
 
-    # -----------------------------Game Loop-----------------------------------------------------
-
     def run(self):
+        """Main game loop to render and update the game."""
         while True:
+            # Draw the background
             self.display.blit(self.assets['background'], (0, 0))
-            
-            # Check if player is dead and reload level if necessary
+
+            # Reduce screenshake gradually
+            self.screenshake = max(0, self.screenshake - 1)
+
+            # Reset level if player is dead
             if self.dead:
                 self.dead += 1
                 if self.dead > 40:
                     self.load_level(0)
-            
-            # Update camera scroll to follow player
+
+            # Center camera on the player with smooth scrolling
             self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / 30
             self.scroll[1] += (self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1]) / 30
             render_scroll = (int(self.scroll[0]), int(self.scroll[1]))
-            
-            # Spawn leaf particles at trees
+
+            # Spawn leaf particles near trees
             for rect in self.leaf_spawners:
                 if random.random() * 49999 < rect.width * rect.height:
                     pos = (rect.x + random.random() * rect.width, rect.y + random.random() * rect.height)
                     self.particles.append(Particle(self, 'leaf', pos, velocity=[-0.1, 0.3], frame=random.randint(0, 20)))
-            
-            # Update and render clouds, tilemap, enemies, and player
+
+            # Update and render clouds
             self.clouds.update()
             self.clouds.render(self.display, offset=render_scroll)
+
+            # Render the tilemap
             self.tilemap.render(self.display, offset=render_scroll)
-            
+
+            # Update and render enemies
             for enemy in self.enemies.copy():
-                if enemy.update(self.tilemap, (0, 0)):
-                    self.enemies.remove(enemy)
+                kill = enemy.update(self.tilemap, (0, 0))
                 enemy.render(self.display, offset=render_scroll)
-            
+                if kill:
+                    self.enemies.remove(enemy)
+
+            # Update and render the player
             if not self.dead:
                 self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0))
                 self.player.render(self.display, offset=render_scroll)
-            
-            # Update and render projectiles
+
+            # Handle projectiles
             for projectile in self.projectiles.copy():
-                # Moving projectile and checking for collision
+                # Update projectile position and check collisions
                 projectile[0][0] += projectile[1]
                 projectile[2] += 1
                 img = self.assets['projectile']
                 self.display.blit(img, (projectile[0][0] - img.get_width() / 2 - render_scroll[0], projectile[0][1] - img.get_height() / 2 - render_scroll[1]))
                 
-                if self.tilemap.solid_check(projectile[0]) or projectile[2] > 360:
+                # Remove projectile if it hits a solid object
+                if self.tilemap.solid_check(projectile[0]):
                     self.projectiles.remove(projectile)
-                    for _ in range(4):
+                    for i in range(4):
                         self.sparks.append(Spark(projectile[0], random.random() - 0.5 + (math.pi if projectile[1] > 0 else 0), 2 + random.random()))
                 
+                # Remove projectile if it has been alive too long
+                elif projectile[2] > 360:
+                    self.projectiles.remove(projectile)
+                
+                # Handle collision with player
                 elif abs(self.player.dashing) < 50 and self.player.rect().collidepoint(projectile[0]):
                     self.projectiles.remove(projectile)
                     self.dead += 1
-                    for _ in range(30):
+                    self.screenshake = max(16, self.screenshake)
+                    for i in range(30):
                         angle = random.random() * math.pi * 2
                         speed = random.random() * 5
                         self.sparks.append(Spark(self.player.rect().center, angle, 2 + random.random()))
@@ -156,7 +175,7 @@ class Game:
                 if particle.type == 'leaf':
                     particle.pos[0] += math.sin(particle.animation.frame * 0.035) * 0.3
             
-            # Handle events for player movement
+            # Event handling
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -175,11 +194,14 @@ class Game:
                         self.movement[0] = False
                     if event.key == pygame.K_RIGHT:
                         self.movement[1] = False
-            
-            # Update screen display and lock FPS
-            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
+
+            # Apply screenshake effect
+            screenshake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2)
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), screenshake_offset)
             pygame.display.update()
+
+            # Cap the frame rate
             self.clock.tick(60)
 
-# -----------------------------------------------Run Game----------------------------------------------------
+# Run the game
 Game().run()
