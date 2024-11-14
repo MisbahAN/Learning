@@ -1,78 +1,94 @@
 import sys
 import pygame
 
-class Game:
+from scripts.utils import load_image, load_images
+from scripts.entities import PhysicsEntity
+from scripts.tilemap import Tilemap
 
+class Game:
+    
     # -----------------------------Initializing Game Class-----------------------------------------------------    
 
     def __init__(self):
         # Initialize pygame
         pygame.init()
-
+ 
         # Sets caption/title for game screen
-        pygame.display.set_caption("Ninja Game")
+        pygame.display.set_caption('ninja game')
 
         # Creates a window with resolution 640 by 480
-        self.screen = pygame.display.set_mode((640, 480)) # Screen is black by default
+        self.screen = pygame.display.set_mode((640, 480))
 
-        # Create an instance of a clock object
+        # Creates a surface for rendering the game at a smaller resolution (320 by 240)
+        self.display = pygame.Surface((320, 240))
+
+        # Create an instance of a clock object to control frame rate
         self.clock = pygame.time.Clock()
 
-        # Load a cloud_1 image. NEED TO BLIT/PACK it
-        self.img = pygame.image.load('data/images/clouds/cloud_1.png')
-        self.img.set_colorkey((0, 0, 0)) # set colourkey for self.img to black
+        # Movement array for left and right keys (0 for left, 1 for right)
+        self.movement = [False, False]
 
-        self.img_pos = [160, 260]
-        self.movement = [False, False] # position 0 represents up movement, position 1 represents down movement
+        # Loading game assets: decor, grass, large decor, stone, and player image
+        self.assets = {
+            'decor': load_images('tiles/decor'),
+            'grass': load_images('tiles/grass'),
+            'large_decor': load_images('tiles/large_decor'),
+            'stone': load_images('tiles/stone'),
+            'player': load_image('entities/player.png')
+        }
 
-        self.collision_area = pygame.Rect(50, 50, 300, 50) # (left, top, width, height)
+        # Initializing player entity with position (50, 50) and size (8, 15)
+        self.player = PhysicsEntity(self, 'player', (50, 50), (8, 15))
 
-    # -----------------------------Creating Run Function-----------------------------------------------------   
+        # Initializing tilemap with a tile size of 16
+        self.tilemap = Tilemap(self, tile_size=16)
+
+    # -----------------------------Run Game Function-----------------------------------------------------    
 
     def run(self):
         while True:
-            # Filling screen colour with RGB values
-            self.screen.fill((14, 219, 248))
+            # Filling the display surface with a background color
+            self.display.fill((14, 219, 248))
 
-            img_r = pygame.Rect(self.img_pos[0], self.img_pos[1], self.img.get_width(), self.img.get_height()) # matches exactly to the size of image to be renderred
-            if img_r.colliderect(self.collision_area): # if colliding
-                pygame.draw.rect(self.screen, (0, 100, 255), self.collision_area)
-            else: # if not colliding
-                pygame.draw.rect(self.screen, (0, 50, 155), self.collision_area)
+            # Rendering the tilemap onto the display surface
+            self.tilemap.render(self.display)
 
-            # Adjusting self.img_pos after each click and release of key
-            self.img_pos[1] += (self.movement[1] - self.movement[0]) * 5 # The '* 5' makes the object move 5 times faster
+            # Updating and rendering the player on the display surface
+            self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0))
+            self.player.render(self.display)
 
-            # Packing/Bliting self.img onto game screen at coordinates [160, 260], i.e self.img_pos. Note: Top left of game screen is [0, 0]
-            self.screen.blit(self.img, self.img_pos)
+            # -----------------------------Handling Events-----------------------------------------------------    
 
-            # So the screen doesnt freeze
-            for event in pygame.event.get(): 
-
-                # Quit Game if user closes the application 
+            for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    # Quit game if user closes the window
                     pygame.quit()
                     sys.exit()
 
-                # -----------------------------Up and Down key movements---------------------------------------             
-   
-                # Check for up or down movements when up/down arrow-key pressed
-                if event.type == pygame.KEYDOWN: # if any key pressed
-                    if event.key == pygame.K_UP or event.key == pygame.K_w:
-                        self.movement[0] = True # if up arrow-key or w key pressed, move up
-                    if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                        self.movement[1] = True # if down arrow-keyor s pressed, move down
+                # Handle key presses for movement and player jump
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        self.movement[0] = True # Move left when left arrow key pressed
+                    if event.key == pygame.K_RIGHT:
+                        self.movement[1] = True # Move right when right arrow key pressed
+                    if event.key == pygame.K_UP:
+                        self.player.velocity[1] = -3 # Jump when up arrow key pressed
 
-                if event.type == pygame.KEYUP: # if any key released
-                    if event.key == pygame.K_UP or event.key == pygame.K_w:
-                        self.movement[0] = False # if up arrow-key or w key released, stay still
-                    if event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                        self.movement[1] = False # if down arrow-key or s key released, stay still
-            
+                # Handle key releases to stop movement
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT:
+                        self.movement[0] = False # Stop left movement when left arrow key released
+                    if event.key == pygame.K_RIGHT:
+                        self.movement[1] = False # Stop right movement when right arrow key released
+
             # -----------------------------Update Display and Lock FPS---------------------------------------  
 
+            # Scaling the display surface to fit the main screen and updating the screen
+            self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), (0, 0))
             pygame.display.update()
-            self.clock.tick(60) # Fixes to 60 FPS
+
+            # Lock the frame rate to 60 FPS
+            self.clock.tick(60)
 
 # -----------------------------------------------Run Game----------------------------------------------------
 Game().run()
