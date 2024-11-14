@@ -1,8 +1,8 @@
 import sys
 import pygame
 
-from scripts.utils import load_image, load_images
-from scripts.entities import PhysicsEntity
+from scripts.utils import load_image, load_images, Animation
+from scripts.entities import PhysicsEntity, Player
 from scripts.tilemap import Tilemap
 from scripts.clouds import Clouds
 
@@ -23,7 +23,7 @@ class Game:
         # Movement array for handling left and right movement
         self.movement = [False, False]
 
-        # Loading game assets (tiles, player, background, clouds)
+        # Loading game assets (tiles, player, background, clouds, animations)
         self.assets = {
             'decor': load_images('tiles/decor'),
             'grass': load_images('tiles/grass'),
@@ -32,13 +32,18 @@ class Game:
             'player': load_image('entities/player.png'),
             'background': load_image('background.png'),
             'clouds': load_images('clouds'),
+            'player/idle': Animation(load_images('entities/player/idle'), img_dur=6),
+            'player/run': Animation(load_images('entities/player/run'), img_dur=4),
+            'player/jump': Animation(load_images('entities/player/jump')),
+            'player/slide': Animation(load_images('entities/player/slide')),
+            'player/wall_slide': Animation(load_images('entities/player/wall_slide')),
         }
 
         # Initialize clouds with count of 16
         self.clouds = Clouds(self.assets['clouds'], count=16)
 
         # Create player entity with initial position (50, 50) and size (8, 15)
-        self.player = PhysicsEntity(self, 'player', (50, 50), (8, 15))
+        self.player = Player(self, (50, 50), (8, 15))
 
         # Set up the tilemap with a tile size of 16
         self.tilemap = Tilemap(self, tile_size=16)
