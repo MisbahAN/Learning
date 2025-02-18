@@ -70,7 +70,6 @@ Lead Instructor at The App Brewery
      ├── 📂 Node_Express_Projects
      ├── 📂 React_Projects
      ├── 📂 Web3_Projects
-     ├── 📂 Section 1
      ├── 📂 Section 2
      ├── 📂 Section 3
      ├── 📂 Section 4
